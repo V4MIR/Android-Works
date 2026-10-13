@@ -1,4 +1,4 @@
-package com.example.androidworks.data.model
+package com.example.androidworks.domain.model
 
 data class Artwork(
     val objectId: Int,

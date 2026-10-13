@@ -1,6 +1,5 @@
 package com.example.androidworks.ui.screens.details
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -26,6 +26,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -36,20 +37,26 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import com.example.androidworks.ui.AppViewModelFactory
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetailsScreen(
     objectId: Int,
-    onBackClick: () -> Unit,
-    viewModel: DetailsViewModel = viewModel()
+    onBackClick: () -> Unit
 ) {
-    val details by viewModel.details.collectAsState()
+    val context = LocalContext.current
+    val viewModel: DetailsViewModel = viewModel(
+        factory = AppViewModelFactory(context.applicationContext)
+    )
+    val uiState by viewModel.uiState.collectAsState()
 
     LaunchedEffect(objectId) {
         viewModel.load(objectId)
@@ -81,188 +88,244 @@ fun DetailsScreen(
             )
         }
     ) { innerPadding ->
-        val item = details
-        if (item == null) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("Загрузка...", style = MaterialTheme.typography.bodyMedium)
-            }
-            return@Scaffold
-        }
 
-        LazyColumn(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            item {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 20.dp, vertical = 8.dp),
-                    verticalAlignment = Alignment.Top
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(140.dp)
-                            .border(
-                                width = 1.dp,
-                                color = MaterialTheme.colorScheme.outline,
-                                shape = RoundedCornerShape(2.dp)
-                            )
-                            .padding(6.dp)
+            when (val state = uiState) {
+
+                is DetailsUiState.Loading -> {
+                    Column(
+                        modifier = Modifier.align(Alignment.Center),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        AsyncImage(
-                            model = item.primaryImageSmall,
-                            contentDescription = item.title,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .clip(RoundedCornerShape(1.dp))
+                        CircularProgressIndicator(
+                            color = MaterialTheme.colorScheme.primary,
+                            strokeWidth = 2.dp
+                        )
+                        Spacer(Modifier.height(12.dp))
+                        Text(
+                            text = "ЗАГРУЗКА ЭКСПОНАТА",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
+                }
 
-                    Spacer(Modifier.width(16.dp))
-
-                    Column(modifier = Modifier.weight(1f)) {
-                        if (item.isHighlight) {
-                            Text(
-                                text = "★ ВЫДАЮЩИЙСЯ ЭКСПОНАТ",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.secondary
-                            )
-                            Spacer(Modifier.height(6.dp))
-                        }
+                is DetailsUiState.Error -> {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(40.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
                         Text(
-                            text = item.title,
+                            text = "НЕ УДАЛОСЬ ЗАГРУЗИТЬ",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                        Spacer(Modifier.height(12.dp))
+                        Text(
+                            text = "Экспонат временно недоступен",
                             style = MaterialTheme.typography.headlineSmall,
                             color = MaterialTheme.colorScheme.onBackground,
-                            fontWeight = FontWeight.Medium
+                            textAlign = TextAlign.Center
                         )
                         Spacer(Modifier.height(8.dp))
                         Text(
-                            text = item.artistDisplayName,
-                            style = MaterialTheme.typography.bodyLarge,
-                            fontStyle = FontStyle.Italic,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Spacer(Modifier.height(4.dp))
-                        Text(
-                            text = item.artistDisplayBio,
+                            text = state.message,
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            fontStyle = FontStyle.Italic,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center
                         )
-                        Spacer(Modifier.height(8.dp))
-                        Text(
-                            text = item.objectDate,
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.primary
-                        )
+                        Spacer(Modifier.height(20.dp))
+                        TextButton(onClick = viewModel::retry) {
+                            Text(
+                                text = "ПОВТОРИТЬ",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
                     }
                 }
-            }
 
-            item {
-                HorizontalDivider(
-                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
-                    color = MaterialTheme.colorScheme.outline
-                )
-            }
+                is DetailsUiState.Success -> {
+                    val item = state.details
 
-            item {
-                Column(modifier = Modifier.padding(horizontal = 20.dp)) {
-                    Text(
-                        text = "СВЕДЕНИЯ О ПРОИЗВЕДЕНИИ",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    Spacer(Modifier.height(12.dp))
+                    LazyColumn(modifier = Modifier.fillMaxSize()) {
 
-                    LabeledFact("Техника", item.medium)
-                    LabeledFact("Размеры", item.dimensions)
-                    LabeledFact("Классификация", item.classification)
-                    LabeledFact("Отдел", item.department)
-                    if (item.period != "—") LabeledFact("Период", item.period)
-                    if (item.dynasty != "—") LabeledFact("Династия", item.dynasty)
-                    if (item.culture != "—") LabeledFact("Культура", item.culture)
-                    if (item.country != "—") LabeledFact("Страна", item.country)
-                }
-            }
-
-            item {
-                HorizontalDivider(
-                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
-                    color = MaterialTheme.colorScheme.outlineVariant
-                )
-            }
-
-            item {
-                Column(modifier = Modifier.padding(horizontal = 20.dp)) {
-                    Text(
-                        text = "ИНВЕНТАРНАЯ КАРТОЧКА",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    Spacer(Modifier.height(12.dp))
-
-                    InventoryField("Инвентарный номер", "№ ${item.objectId}")
-                    InventoryField("Галерея", item.galleryNumber)
-                    InventoryField(
-                        "Публичное достояние",
-                        if (item.isPublicDomain) "Да" else "Нет"
-                    )
-
-                    Spacer(Modifier.height(12.dp))
-                    Text(
-                        text = item.creditLine,
-                        style = MaterialTheme.typography.bodySmall,
-                        fontStyle = FontStyle.Italic,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-
-            if (item.tags.isNotEmpty()) {
-                item {
-                    Column(modifier = Modifier.padding(20.dp)) {
-                        Text(
-                            text = "ТЕМАТИЧЕСКИЕ МЕТКИ",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        Spacer(Modifier.height(10.dp))
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            item.tags.take(4).forEach { tag ->
-                                AssistChip(
-                                    onClick = {},
-                                    label = {
-                                        Text(
-                                            tag,
-                                            style = MaterialTheme.typography.labelMedium
+                        item {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 20.dp, vertical = 8.dp),
+                                verticalAlignment = Alignment.Top
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(140.dp)
+                                        .border(
+                                            width = 1.dp,
+                                            color = MaterialTheme.colorScheme.outline,
+                                            shape = RoundedCornerShape(2.dp)
                                         )
-                                    },
-                                    colors = AssistChipDefaults.assistChipColors(
-                                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                                        labelColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                        .padding(6.dp)
+                                ) {
+                                    AsyncImage(
+                                        model = item.primaryImageSmall.ifBlank { item.primaryImage },
+                                        contentDescription = item.title,
+                                        contentScale = ContentScale.Crop,
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .clip(RoundedCornerShape(1.dp))
                                     )
+                                }
+
+                                Spacer(Modifier.width(16.dp))
+
+                                Column(modifier = Modifier.weight(1f)) {
+                                    if (item.isHighlight) {
+                                        Text(
+                                            text = "★ ВЫДАЮЩИЙСЯ ЭКСПОНАТ",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.secondary
+                                        )
+                                        Spacer(Modifier.height(6.dp))
+                                    }
+                                    Text(
+                                        text = item.title,
+                                        style = MaterialTheme.typography.headlineSmall,
+                                        color = MaterialTheme.colorScheme.onBackground,
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                    Spacer(Modifier.height(8.dp))
+                                    Text(
+                                        text = item.artistDisplayName,
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        fontStyle = FontStyle.Italic,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    Spacer(Modifier.height(4.dp))
+                                    Text(
+                                        text = item.artistDisplayBio,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    Spacer(Modifier.height(8.dp))
+                                    Text(
+                                        text = item.objectDate,
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                            }
+                        }
+
+                        item {
+                            HorizontalDivider(
+                                modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
+                                color = MaterialTheme.colorScheme.outline
+                            )
+                        }
+
+                        item {
+                            Column(modifier = Modifier.padding(horizontal = 20.dp)) {
+                                Text(
+                                    text = "СВЕДЕНИЯ О ПРОИЗВЕДЕНИИ",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                                Spacer(Modifier.height(12.dp))
+
+                                LabeledFact("Техника", item.medium)
+                                LabeledFact("Размеры", item.dimensions)
+                                LabeledFact("Классификация", item.classification)
+                                LabeledFact("Отдел", item.department)
+                                if (item.period.isNotBlank()) LabeledFact("Период", item.period)
+                                if (item.dynasty.isNotBlank()) LabeledFact("Династия", item.dynasty)
+                                if (item.culture.isNotBlank()) LabeledFact("Культура", item.culture)
+                                if (item.country.isNotBlank()) LabeledFact("Страна", item.country)
+                            }
+                        }
+
+                        item {
+                            HorizontalDivider(
+                                modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
+                                color = MaterialTheme.colorScheme.outlineVariant
+                            )
+                        }
+
+                        item {
+                            Column(modifier = Modifier.padding(horizontal = 20.dp)) {
+                                Text(
+                                    text = "ИНВЕНТАРНАЯ КАРТОЧКА",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                                Spacer(Modifier.height(12.dp))
+
+                                InventoryField("Инвентарный номер", "№ ${item.objectId}")
+                                InventoryField("Галерея", item.galleryNumber.ifBlank { "—" })
+                                InventoryField(
+                                    "Публичное достояние",
+                                    if (item.isPublicDomain) "Да" else "Нет"
+                                )
+
+                                Spacer(Modifier.height(12.dp))
+                                Text(
+                                    text = item.creditLine,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    fontStyle = FontStyle.Italic,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                         }
+
+                        if (item.tags.isNotEmpty()) {
+                            item {
+                                Column(modifier = Modifier.padding(20.dp)) {
+                                    Text(
+                                        text = "ТЕМАТИЧЕСКИЕ МЕТКИ",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                    Spacer(Modifier.height(10.dp))
+                                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                        item.tags.take(4).forEach { tag ->
+                                            AssistChip(
+                                                onClick = {},
+                                                label = {
+                                                    Text(
+                                                        tag,
+                                                        style = MaterialTheme.typography.labelMedium
+                                                    )
+                                                },
+                                                colors = AssistChipDefaults.assistChipColors(
+                                                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                                    labelColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                                )
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        item { Spacer(Modifier.height(32.dp)) }
                     }
                 }
             }
-
-            item { Spacer(Modifier.height(32.dp)) }
         }
     }
 }
 
 @Composable
 private fun LabeledFact(label: String, value: String) {
+    if (value.isBlank()) return
     Row(
         modifier = Modifier
             .fillMaxWidth()

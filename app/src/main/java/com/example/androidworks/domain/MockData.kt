@@ -1,7 +1,7 @@
-package com.example.androidworks.data
+package com.example.androidworks.domain
 
-import com.example.androidworks.data.model.Artwork
-import com.example.androidworks.data.model.ArtworkDetails
+import com.example.androidworks.domain.model.Artwork
+import com.example.androidworks.domain.model.ArtworkDetails
 
 object MockData {
 

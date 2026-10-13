@@ -1,18 +1,36 @@
 package com.example.androidworks.ui.screens.details
 
 import androidx.lifecycle.ViewModel
-import com.example.androidworks.data.MockData
-import com.example.androidworks.data.model.ArtworkDetails
+import androidx.lifecycle.viewModelScope
+import com.example.androidworks.domain.usecase.GetArtworkDetailsUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 
-class DetailsViewModel : ViewModel() {
+class DetailsViewModel(
+    private val getArtworkDetailsUseCase: GetArtworkDetailsUseCase
+) : ViewModel() {
 
-    private val _details = MutableStateFlow<ArtworkDetails?>(null)
-    val details: StateFlow<ArtworkDetails?> = _details.asStateFlow()
+    private val _uiState = MutableStateFlow<DetailsUiState>(DetailsUiState.Loading)
+    val uiState: StateFlow<DetailsUiState> = _uiState.asStateFlow()
 
-    fun load(objectId: Int) {
-        _details.value = MockData.getDetailsById(objectId)
+    private var objectId: Int = -1
+
+    fun load(id: Int) {
+        if (objectId == id && _uiState.value is DetailsUiState.Success) return
+        objectId = id
+        viewModelScope.launch {
+            _uiState.value = DetailsUiState.Loading
+            val result = getArtworkDetailsUseCase(id)
+            _uiState.value = result.fold(
+                onSuccess = { DetailsUiState.Success(it) },
+                onFailure = { DetailsUiState.Error(it.message ?: "Ошибка загрузки") }
+            )
+        }
+    }
+
+    fun retry() {
+        if (objectId > 0) load(objectId)
     }
 }
