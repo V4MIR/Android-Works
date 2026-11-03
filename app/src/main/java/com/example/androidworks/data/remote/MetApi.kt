@@ -13,7 +13,7 @@ interface MetApi {
         @Query("q") query: String,
         @Query("offset") offset: Int,
         @Query("limit") limit: Int,
-        @Query("hasImages") hasImages: Boolean = true
+        @Query("hasImages") hasImages: Boolean
     ): SearchResponseDto
 
     @GET("public/collection/v1/objects/{objectID}")

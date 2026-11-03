@@ -1,8 +1,11 @@
 package com.example.androidworks.ui.components
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -23,10 +26,12 @@ private data class BottomItem(
 @Composable
 fun BottomBar(
     currentRoute: String?,
+    showBadge: Boolean,
     onTabSelected: (BottomTab) -> Unit
 ) {
     val items = listOf(
         BottomItem(BottomTab.LIST, Icons.Filled.List),
+        BottomItem(BottomTab.FAVORITES, Icons.Filled.Favorite),
         BottomItem(BottomTab.PROFILE, Icons.Filled.Person)
     )
 
@@ -38,18 +43,38 @@ fun BottomBar(
     ) {
         items.forEach { item ->
             val selected = currentRoute == item.tab.route
+
             NavigationBarItem(
                 selected = selected,
                 onClick = { onTabSelected(item.tab) },
                 icon = {
-                    Icon(
-                        item.icon,
-                        contentDescription = item.tab.title,
-                        tint = if (selected)
-                            MaterialTheme.colorScheme.primary
-                        else
-                            MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    if (item.tab == BottomTab.LIST && showBadge) {
+                        BadgedBox(
+                            badge = {
+                                Badge(
+                                    containerColor = MaterialTheme.colorScheme.secondary
+                                )
+                            }
+                        ) {
+                            Icon(
+                                item.icon,
+                                contentDescription = item.tab.title,
+                                tint = if (selected)
+                                    MaterialTheme.colorScheme.primary
+                                else
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    } else {
+                        Icon(
+                            item.icon,
+                            contentDescription = item.tab.title,
+                            tint = if (selected)
+                                MaterialTheme.colorScheme.primary
+                            else
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 },
                 label = {
                     Text(

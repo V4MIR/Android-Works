@@ -16,6 +16,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -37,14 +39,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import coil.compose.AsyncImage
-import com.example.androidworks.ui.AppViewModelFactory
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -52,11 +52,9 @@ fun DetailsScreen(
     objectId: Int,
     onBackClick: () -> Unit
 ) {
-    val context = LocalContext.current
-    val viewModel: DetailsViewModel = viewModel(
-        factory = AppViewModelFactory(context.applicationContext)
-    )
+    val viewModel: DetailsViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsState()
+    val isFavorite by viewModel.isFavorite.collectAsState()
 
     LaunchedEffect(objectId) {
         viewModel.load(objectId)
@@ -80,6 +78,26 @@ fun DetailsScreen(
                             contentDescription = "Назад",
                             tint = MaterialTheme.colorScheme.primary
                         )
+                    }
+                },
+                actions = {
+                    if (uiState is DetailsUiState.Success) {
+                        IconButton(onClick = viewModel::toggleFavorite) {
+                            Icon(
+                                imageVector = if (isFavorite)
+                                    Icons.Filled.Favorite
+                                else
+                                    Icons.Outlined.FavoriteBorder,
+                                contentDescription = if (isFavorite)
+                                    "Удалить из избранного"
+                                else
+                                    "Добавить в избранное",
+                                tint = if (isFavorite)
+                                    MaterialTheme.colorScheme.secondary
+                                else
+                                    MaterialTheme.colorScheme.primary
+                            )
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(

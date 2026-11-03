@@ -12,10 +12,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -24,74 +22,66 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.androidworks.ui.AppViewModelFactory
+import androidx.hilt.navigation.compose.hiltViewModel
 
 @Composable
 fun ListScreen(
-    onArtworkClick: (Int) -> Unit
+    onArtworkClick: (Int) -> Unit,
+    onOpenFilters: () -> Unit,
+    viewModel: ListViewModel = hiltViewModel()
 ) {
-    val context = LocalContext.current
-    val viewModel: ListViewModel = viewModel(
-        factory = AppViewModelFactory(context.applicationContext)
-    )
     val uiState by viewModel.uiState.collectAsState()
-    val query by viewModel.query.collectAsState()
 
     Column(modifier = Modifier.fillMaxSize()) {
 
-        Column(
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 24.dp)
+                .padding(horizontal = 20.dp, vertical = 24.dp),
+            verticalAlignment = Alignment.Top
         ) {
-            Text(
-                text = "THE MET",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.primary
-            )
-            Text(
-                text = "Каталог коллекции",
-                style = MaterialTheme.typography.headlineLarge,
-                color = MaterialTheme.colorScheme.onBackground
-            )
-            Text(
-                text = "Избранные произведения из собрания музея",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(top = 4.dp)
-            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "THE MET",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Text(
+                    text = "Каталог коллекции",
+                    style = MaterialTheme.typography.headlineLarge,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                Text(
+                    text = "Избранные произведения из собрания музея",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 4.dp)
+                )
+            }
+            Spacer(Modifier.width(12.dp))
+            TextButton(onClick = onOpenFilters) {
+                Text(
+                    text = "ФИЛЬТРЫ",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
         }
-
-        SearchRow(
-            query = query,
-            onQueryChange = viewModel::onQueryChange,
-            onSearch = viewModel::search
-        )
 
         HorizontalDivider(color = MaterialTheme.colorScheme.outline)
 
         when (val state = uiState) {
-            is ListUiState.Loading -> {
-                LoadingState()
-            }
+            is ListUiState.Loading -> LoadingState()
 
-            is ListUiState.Error -> {
-                ErrorState(
-                    message = state.message,
-                    onRetry = viewModel::retry
-                )
-            }
+            is ListUiState.Error -> ErrorState(
+                message = state.message,
+                onRetry = viewModel::retry
+            )
 
-            is ListUiState.Empty -> {
-                EmptyState()
-            }
+            is ListUiState.Empty -> EmptyState()
 
             is ListUiState.Success -> {
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
@@ -107,57 +97,6 @@ fun ListScreen(
                     }
                 }
             }
-        }
-    }
-}
-
-@Composable
-private fun SearchRow(
-    query: String,
-    onQueryChange: (String) -> Unit,
-    onSearch: () -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = "ПОИСК",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.primary
-            )
-            Spacer(Modifier.height(4.dp))
-            BasicTextField(
-                value = query,
-                onValueChange = onQueryChange,
-                singleLine = true,
-                textStyle = LocalTextStyle.current.merge(
-                    MaterialTheme.typography.bodyLarge.copy(
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                ),
-                cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
-                    imeAction = ImeAction.Search
-                ),
-                keyboardActions = androidx.compose.foundation.text.KeyboardActions(
-                    onSearch = { onSearch() }
-                ),
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(Modifier.height(4.dp))
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-        }
-        Spacer(Modifier.width(12.dp))
-        TextButton(onClick = onSearch) {
-            Text(
-                text = "НАЙТИ",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.primary
-            )
         }
     }
 }

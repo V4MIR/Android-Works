@@ -7,7 +7,8 @@ interface MuseumRepository {
     suspend fun searchArtworks(
         query: String,
         page: Int = 0,
-        pageSize: Int = 20
+        pageSize: Int = 20,
+        hasImages: Boolean
     ): Result<List<Artwork>>
 
     suspend fun getArtworkDetails(objectId: Int): Result<ArtworkDetails>

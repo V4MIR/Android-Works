@@ -5,25 +5,28 @@ import com.example.androidworks.data.remote.mapper.toDomain
 import com.example.androidworks.domain.model.Artwork
 import com.example.androidworks.domain.model.ArtworkDetails
 import com.example.androidworks.domain.repository.MuseumRepository
+import jakarta.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.IOException
 
-class MuseumRepositoryImpl(
+class MuseumRepositoryImpl @Inject constructor(
     private val api: MetApi
 ) : MuseumRepository {
 
     override suspend fun searchArtworks(
         query: String,
         page: Int,
-        pageSize: Int
+        pageSize: Int,
+        hasImages: Boolean
     ): Result<List<Artwork>> = withContext(Dispatchers.IO) {
         runCatching {
             val offset = page * pageSize
             val response = api.searchArtworks(
                 query = query,
                 offset = offset,
-                limit = pageSize
+                limit = pageSize,
+                hasImages = hasImages
             )
             val ids = response.objectIds.orEmpty().take(pageSize)
             if (ids.isEmpty()) return@runCatching emptyList()
