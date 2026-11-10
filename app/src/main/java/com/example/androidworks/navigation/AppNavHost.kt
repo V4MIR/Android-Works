@@ -7,7 +7,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -21,7 +21,9 @@ import com.example.androidworks.ui.screens.favorites.FavoritesScreen
 import com.example.androidworks.ui.screens.filter.FilterScreen
 import com.example.androidworks.ui.screens.list.ListScreen
 import com.example.androidworks.ui.screens.list.ListViewModel
-import com.example.androidworks.ui.screens.stub.StubScreen
+import com.example.androidworks.ui.screens.profile.EditProfileScreen
+import com.example.androidworks.ui.screens.profile.ProfileScreen
+import com.example.androidworks.ui.screens.profile.ProfileViewModel
 
 @Composable
 fun AppNavHost() {
@@ -94,13 +96,21 @@ fun AppNavHost() {
             }
 
             composable(BottomTab.PROFILE.route) {
-                StubScreen(title = "Профиль", subtitle = "Будет позже")
+                val profileViewModel: ProfileViewModel = hiltViewModel()
+                ProfileScreen(
+                    viewModel = profileViewModel,
+                    onEditClick = {
+                        navController.navigate(EditProfileDestination.ROUTE)
+                    },
+                    onResumeClick = { url: String ->
+                        profileViewModel.downloadResume(url)
+                    }
+                )
             }
 
             composable(FilterDestination.ROUTE) {
                 FilterScreen(
                     onDone = {
-
                         navController
                             .getBackStackEntry(BottomTab.LIST.route)
                             .savedStateHandle["reload"] = true
@@ -119,6 +129,12 @@ fun AppNavHost() {
                     objectId = entry.arguments
                         ?.getInt(DetailsDestination.ARG_OBJECT_ID) ?: 0,
                     onBackClick = { navController.popBackStack() }
+                )
+            }
+
+            composable(EditProfileDestination.ROUTE) {
+                EditProfileScreen(
+                    onDone = { navController.popBackStack() }
                 )
             }
         }

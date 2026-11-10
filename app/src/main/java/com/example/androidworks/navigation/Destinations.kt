@@ -10,6 +10,10 @@ object FilterDestination {
     const val ROUTE = "filter"
 }
 
+object EditProfileDestination {
+    const val ROUTE = "edit_profile"
+}
+
 object DetailsDestination {
     const val ROUTE = "details/{objectId}"
     const val ARG_OBJECT_ID = "objectId"
