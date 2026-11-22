@@ -1,6 +1,7 @@
 package com.example.androidworks.ui.screens.profile
 
 import android.content.Context
+import com.example.androidworks.notifications.ClassReminderScheduler
 import android.graphics.Bitmap
 import android.net.Uri
 import androidx.core.content.FileProvider
@@ -34,6 +35,15 @@ class EditProfileViewModel @Inject constructor(
         }
     }
 
+    fun updateClassTime(v: String) = _draft.update { it.copy(favoriteClassTime = v) }
+
+    fun isValidTime(value: String): Boolean {
+        if (!Regex("\\d{2}:\\d{2}").matches(value)) return false
+        val hour = value.substring(0, 2).toIntOrNull() ?: return false
+        val minute = value.substring(3, 5).toIntOrNull() ?: return false
+        return hour in 0..23 && minute in 0..59
+    }
+
     fun updateName(v: String) = _draft.update { it.copy(fullName = v) }
 
     fun updatePosition(v: String) = _draft.update { it.copy(position = v) }
@@ -56,7 +66,10 @@ class EditProfileViewModel @Inject constructor(
 
     fun save(onSaved: () -> Unit = {}) {
         viewModelScope.launch {
-            repository.save(_draft.value)
+            val profile = _draft.value
+            if (!isValidTime(profile.favoriteClassTime)) return@launch
+            repository.save(profile)
+            ClassReminderScheduler.schedule(context, profile.favoriteClassTime, profile.fullName)
             onSaved()
         }
     }

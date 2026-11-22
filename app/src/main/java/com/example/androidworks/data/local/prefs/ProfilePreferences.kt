@@ -28,6 +28,7 @@ class ProfilePreferences @Inject constructor(
         val POSITION = stringPreferencesKey("position")
         val AVATAR = stringPreferencesKey("avatar_uri")
         val RESUME = stringPreferencesKey("resume_url")
+        val CLASS_TIME = stringPreferencesKey("favorite_class_time")
     }
 
     override val profile: Flow<Profile> = context.profileDataStore.data
@@ -37,7 +38,8 @@ class ProfilePreferences @Inject constructor(
                 fullName = prefs[Keys.NAME] ?: "",
                 position = prefs[Keys.POSITION] ?: "",
                 avatarUri = prefs[Keys.AVATAR] ?: "",
-                resumeUrl = prefs[Keys.RESUME] ?: ""
+                resumeUrl = prefs[Keys.RESUME] ?: "",
+                favoriteClassTime = prefs[Keys.CLASS_TIME] ?: ""
             )
         }
 
@@ -47,6 +49,7 @@ class ProfilePreferences @Inject constructor(
             prefs[Keys.POSITION] = profile.position
             prefs[Keys.AVATAR] = profile.avatarUri
             prefs[Keys.RESUME] = profile.resumeUrl
+            prefs[Keys.CLASS_TIME] = profile.favoriteClassTime
         }
     }
 }

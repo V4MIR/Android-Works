@@ -4,6 +4,12 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
 import android.widget.Toast
+import android.app.TimePickerDialog
+import androidx.compose.material.icons.filled.AccessTime
+import androidx.compose.material3.IconButton
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardType
+import java.util.Calendar
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -53,6 +59,19 @@ fun EditProfileScreen(
     val draft by viewModel.draft.collectAsState()
     var showSourceDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
+    val validTime = viewModel.isValidTime(draft.favoriteClassTime)
+    val notificationPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (!granted) Toast.makeText(context, "Разрешите уведомления в настройках приложения", Toast.LENGTH_LONG).show()
+    }
+    fun saveProfile() {
+        if (!validTime) return
+        if (Build.VERSION.SDK_INT >= 33 &&
+            ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+        ) notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        viewModel.save(onDone)
+    }
 
     val pickImage = rememberLauncherForActivityResult(
         ActivityResultContracts.PickVisualMedia()
@@ -126,7 +145,7 @@ fun EditProfileScreen(
             TopAppBar(
                 title = { Text("Редактирование профиля") },
                 actions = {
-                    TextButton(onClick = { viewModel.save { onDone() } }) {
+                    TextButton(onClick = { saveProfile() }, enabled = validTime) {
                         Text("Готово", color = MaterialTheme.colorScheme.primary)
                     }
                 }
@@ -186,9 +205,37 @@ fun EditProfileScreen(
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
+            Spacer(Modifier.height(12.dp))
+            OutlinedTextField(
+                value = draft.favoriteClassTime,
+                onValueChange = viewModel::updateClassTime,
+                label = { Text("Время любимой пары") },
+                placeholder = { Text("HH:mm") },
+                singleLine = true,
+                isError = !validTime,
+                supportingText = if (!validTime) {
+                    { Text("Введите время в формате HH:mm (00:00–23:59)") }
+                } else null,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                trailingIcon = {
+                    IconButton(onClick = {
+                        val now = Calendar.getInstance()
+                        val parts = draft.favoriteClassTime.split(":")
+                        val hour = parts.getOrNull(0)?.toIntOrNull()?.takeIf { it in 0..23 }
+                            ?: now.get(Calendar.HOUR_OF_DAY)
+                        val minute = parts.getOrNull(1)?.toIntOrNull()?.takeIf { it in 0..59 }
+                            ?: now.get(Calendar.MINUTE)
+                        TimePickerDialog(context, { _, h, m ->
+                            viewModel.updateClassTime("%02d:%02d".format(h, m))
+                        }, hour, minute, true).show()
+                    }) { Icon(Icons.Filled.AccessTime, contentDescription = "Выбрать время") }
+                },
+                modifier = Modifier.fillMaxWidth()
+            )
             Spacer(Modifier.height(24.dp))
             Button(
-                onClick = { viewModel.save { onDone() } },
+                onClick = { saveProfile() },
+                enabled = validTime,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Готово")
