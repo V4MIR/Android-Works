@@ -1,0 +1,2 @@
+int drawable ic_class_reminder 0x0
+int xml file_paths 0x0

@@ -1,0 +1,64 @@
+-- Merging decision tree log ---
+manifest
+ADDED from M:\Documents\GitHub\Android-Works\profile\src\main\AndroidManifest.xml:1:1-24:12
+INJECTED from M:\Documents\GitHub\Android-Works\profile\src\main\AndroidManifest.xml:1:1-24:12
+	package
+		INJECTED from M:\Documents\GitHub\Android-Works\profile\src\main\AndroidManifest.xml
+	xmlns:android
+		ADDED from M:\Documents\GitHub\Android-Works\profile\src\main\AndroidManifest.xml:1:11-69
+uses-permission#android.permission.POST_NOTIFICATIONS
+ADDED from M:\Documents\GitHub\Android-Works\profile\src\main\AndroidManifest.xml:2:5-77
+	android:name
+		ADDED from M:\Documents\GitHub\Android-Works\profile\src\main\AndroidManifest.xml:2:22-74
+uses-permission#android.permission.CAMERA
+ADDED from M:\Documents\GitHub\Android-Works\profile\src\main\AndroidManifest.xml:3:5-65
+	android:name
+		ADDED from M:\Documents\GitHub\Android-Works\profile\src\main\AndroidManifest.xml:3:22-62
+uses-permission#android.permission.READ_EXTERNAL_STORAGE
+ADDED from M:\Documents\GitHub\Android-Works\profile\src\main\AndroidManifest.xml:4:5-6:38
+	android:maxSdkVersion
+		ADDED from M:\Documents\GitHub\Android-Works\profile\src\main\AndroidManifest.xml:6:9-35
+	android:name
+		ADDED from M:\Documents\GitHub\Android-Works\profile\src\main\AndroidManifest.xml:5:9-64
+uses-permission#android.permission.READ_MEDIA_IMAGES
+ADDED from M:\Documents\GitHub\Android-Works\profile\src\main\AndroidManifest.xml:7:5-76
+	android:name
+		ADDED from M:\Documents\GitHub\Android-Works\profile\src\main\AndroidManifest.xml:7:22-73
+uses-feature#android.hardware.camera
+ADDED from M:\Documents\GitHub\Android-Works\profile\src\main\AndroidManifest.xml:9:5-11:36
+	android:required
+		ADDED from M:\Documents\GitHub\Android-Works\profile\src\main\AndroidManifest.xml:11:9-33
+	android:name
+		ADDED from M:\Documents\GitHub\Android-Works\profile\src\main\AndroidManifest.xml:10:9-47
+application
+ADDED from M:\Documents\GitHub\Android-Works\profile\src\main\AndroidManifest.xml:12:5-23:19
+receiver#com.example.androidworks.notifications.ClassReminderReceiver
+ADDED from M:\Documents\GitHub\Android-Works\profile\src\main\AndroidManifest.xml:13:9-122
+	android:exported
+		ADDED from M:\Documents\GitHub\Android-Works\profile\src\main\AndroidManifest.xml:13:95-119
+	android:name
+		ADDED from M:\Documents\GitHub\Android-Works\profile\src\main\AndroidManifest.xml:13:19-94
+provider#androidx.core.content.FileProvider
+ADDED from M:\Documents\GitHub\Android-Works\profile\src\main\AndroidManifest.xml:14:9-22:20
+	android:grantUriPermissions
+		ADDED from M:\Documents\GitHub\Android-Works\profile\src\main\AndroidManifest.xml:18:13-47
+	android:authorities
+		ADDED from M:\Documents\GitHub\Android-Works\profile\src\main\AndroidManifest.xml:16:13-64
+	android:exported
+		ADDED from M:\Documents\GitHub\Android-Works\profile\src\main\AndroidManifest.xml:17:13-37
+	android:name
+		ADDED from M:\Documents\GitHub\Android-Works\profile\src\main\AndroidManifest.xml:15:13-62
+meta-data#android.support.FILE_PROVIDER_PATHS
+ADDED from M:\Documents\GitHub\Android-Works\profile\src\main\AndroidManifest.xml:19:13-21:54
+	android:resource
+		ADDED from M:\Documents\GitHub\Android-Works\profile\src\main\AndroidManifest.xml:21:17-51
+	android:name
+		ADDED from M:\Documents\GitHub\Android-Works\profile\src\main\AndroidManifest.xml:20:17-67
+uses-sdk
+INJECTED from M:\Documents\GitHub\Android-Works\profile\src\main\AndroidManifest.xml reason: use-sdk injection requested
+INJECTED from M:\Documents\GitHub\Android-Works\profile\src\main\AndroidManifest.xml
+INJECTED from M:\Documents\GitHub\Android-Works\profile\src\main\AndroidManifest.xml
+	android:targetSdkVersion
+		INJECTED from M:\Documents\GitHub\Android-Works\profile\src\main\AndroidManifest.xml
+	android:minSdkVersion
+		INJECTED from M:\Documents\GitHub\Android-Works\profile\src\main\AndroidManifest.xml
