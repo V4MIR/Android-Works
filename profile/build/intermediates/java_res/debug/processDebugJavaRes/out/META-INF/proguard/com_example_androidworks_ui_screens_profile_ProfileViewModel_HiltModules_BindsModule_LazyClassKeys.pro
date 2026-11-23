@@ -1,0 +1,1 @@
+-keep,allowobfuscation,allowshrinking class com.example.androidworks.ui.screens.profile.ProfileViewModel

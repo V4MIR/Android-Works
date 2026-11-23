@@ -1,0 +1,9 @@
+com.example.androidworks.profile-pngs-0 M:\Documents\GitHub\Android-Works\profile\build\generated\res\pngs\debug
+com.example.androidworks.profile-updated_navigation_xml-1 M:\Documents\GitHub\Android-Works\profile\build\generated\updated_navigation_xml\debug
+com.example.androidworks.profile-mergeDebugResources-2 M:\Documents\GitHub\Android-Works\profile\build\intermediates\incremental\debug\mergeDebugResources\merged.dir
+com.example.androidworks.profile-mergeDebugResources-3 M:\Documents\GitHub\Android-Works\profile\build\intermediates\incremental\debug\mergeDebugResources\stripped.dir
+com.example.androidworks.profile-debug-4 M:\Documents\GitHub\Android-Works\profile\build\intermediates\merged_res\debug\mergeDebugResources
+com.example.androidworks.profile-debug-5 M:\Documents\GitHub\Android-Works\profile\build\intermediates\packaged_res\debug\packageDebugResources
+com.example.androidworks.profile-debug-6 M:\Documents\GitHub\Android-Works\profile\src\debug\res
+com.example.androidworks.profile-main-7 M:\Documents\GitHub\Android-Works\profile\src\main\res
+gradleHome-0 C:\Users\Sergey\.gradle

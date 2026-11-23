@@ -1,0 +1,3 @@
+com.example.androidworks.profile
+drawable ic_class_reminder
+xml file_paths
