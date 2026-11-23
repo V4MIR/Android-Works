@@ -25,3 +25,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "Android(Works"
 include(":app")
+include(":profile")
