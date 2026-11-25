@@ -1,9 +1,11 @@
 package com.example.androidworks.ui.screens.profile
 
-import android.Manifest
-import android.content.pm.PackageManager
-import android.os.Build
+import android.net.Uri
 import android.widget.Toast
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.window.Dialog
+import androidx.compose.material3.Surface
+import androidx.compose.material3.ListItem
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -18,7 +20,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -40,7 +41,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import coil.compose.AsyncImage
 
@@ -54,70 +54,31 @@ fun EditProfileScreen(
     var showSourceDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
+    var pendingPhoto by rememberSaveable { mutableStateOf<String?>(null) }
     val pickImage = rememberLauncherForActivityResult(
         ActivityResultContracts.PickVisualMedia()
     ) { uri ->
-        if (uri != null) viewModel.updateAvatar(uri.toString())
+        if (uri != null) viewModel.importAvatar(uri)
     }
-
     val takePicture = rememberLauncherForActivityResult(
-        ActivityResultContracts.TakePicturePreview()
-    ) { bitmap ->
-        if (bitmap != null) {
-            val uri = viewModel.saveBitmapToInternalStorage(bitmap)
-            viewModel.updateAvatar(uri.toString())
+        ActivityResultContracts.TakePicture()
+    ) { success ->
+        pendingPhoto?.let { value ->
+            if (success) viewModel.updateAvatar(value)
+            else viewModel.discardCameraPhoto(Uri.parse(value))
         }
+        pendingPhoto = null
     }
 
-    val galleryPermissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { granted ->
-        if (granted) {
-            pickImage.launch(
-                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-            )
-        } else {
-            Toast.makeText(context, "Нет доступа к фото", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    val cameraPermissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { granted ->
-        if (granted) {
-            takePicture.launch(null)
-        } else {
-            Toast.makeText(context, "Нет доступа к камере", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    fun galleryPermission(): String =
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            Manifest.permission.READ_MEDIA_IMAGES
-        } else {
-            Manifest.permission.READ_EXTERNAL_STORAGE
-        }
-
-    fun launchGalleryWithPermission() {
-        val permission = galleryPermission()
-        if (ContextCompat.checkSelfPermission(context, permission)
-            == PackageManager.PERMISSION_GRANTED
-        ) {
-            pickImage.launch(
-                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-            )
-        } else {
-            galleryPermissionLauncher.launch(permission)
-        }
-    }
-
-    fun launchCameraWithPermission() {
-        if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA)
-            == PackageManager.PERMISSION_GRANTED
-        ) {
-            takePicture.launch(null)
-        } else {
-            cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+    fun launchCamera() {
+        try {
+            val uri = viewModel.createCameraUri()
+            pendingPhoto = uri.toString()
+            takePicture.launch(uri)
+        } catch (e: Exception) {
+            pendingPhoto?.let { viewModel.discardCameraPhoto(Uri.parse(it)) }
+            pendingPhoto = null
+            Toast.makeText(context, "Не удалось открыть камеру", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -197,26 +158,31 @@ fun EditProfileScreen(
     }
 
     if (showSourceDialog) {
-        AlertDialog(
-            onDismissRequest = { showSourceDialog = false },
-            title = { Text("Новая аватарка") },
-            text = { Text("Откуда взять изображение?") },
-            confirmButton = {
-                TextButton(onClick = {
-                    showSourceDialog = false
-                    launchGalleryWithPermission()
-                }) {
-                    Text("Галерея")
-                }
+        AvatarSourceDialog(
+            onDismiss = { showSourceDialog = false },
+            onGallery = {
+                showSourceDialog = false
+                pickImage.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
             },
-            dismissButton = {
-                TextButton(onClick = {
-                    showSourceDialog = false
-                    launchCameraWithPermission()
-                }) {
-                    Text("Камера")
-                }
+            onCamera = {
+                showSourceDialog = false
+                launchCamera()
             }
         )
+    }
+}
+
+@Composable
+private fun AvatarSourceDialog(onDismiss: () -> Unit, onGallery: () -> Unit, onCamera: () -> Unit) {
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(shape = MaterialTheme.shapes.large) {
+            Column(Modifier.padding(16.dp)) {
+                Text("Новая аватарка", style = MaterialTheme.typography.titleLarge)
+                Spacer(Modifier.height(12.dp))
+                ListItem(headlineContent = { Text("Галерея") }, modifier = Modifier.clickable(onClick = onGallery))
+                ListItem(headlineContent = { Text("Камера") }, modifier = Modifier.clickable(onClick = onCamera))
+                TextButton(onClick = onDismiss, modifier = Modifier.align(Alignment.End)) { Text("Отмена") }
+            }
+        }
     }
 }

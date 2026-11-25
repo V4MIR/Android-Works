@@ -1,7 +1,6 @@
 package com.example.androidworks.ui.screens.profile
 
 import android.content.Context
-import android.graphics.Bitmap
 import android.net.Uri
 import androidx.core.content.FileProvider
 import androidx.lifecycle.ViewModel
@@ -42,16 +41,35 @@ class EditProfileViewModel @Inject constructor(
 
     fun updateAvatar(uri: String) = _draft.update { it.copy(avatarUri = uri) }
 
-    fun saveBitmapToInternalStorage(bitmap: Bitmap): Uri {
-        val file = File(context.filesDir, "avatar_${System.currentTimeMillis()}.jpg")
-        file.outputStream().use { out ->
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out)
+    fun createCameraUri(): Uri {
+        val file = File.createTempFile("avatar_", ".jpg", context.filesDir)
+        return FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+    }
+
+    fun discardCameraPhoto(uri: Uri) {
+        runCatching { context.contentResolver.delete(uri, null, null) }
+    }
+
+    fun importAvatar(uri: Uri) {
+        viewModelScope.launch {
+            val result = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                runCatching {
+                    val file = File.createTempFile("avatar_", ".img", context.filesDir)
+                    try {
+                        val input = context.contentResolver.openInputStream(uri)
+                            ?: error("Не удалось открыть фото")
+                        input.use { source -> file.outputStream().use { source.copyTo(it) } }
+                        FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+                    } catch (e: Exception) {
+                        file.delete()
+                        throw e
+                    }
+                }
+            }
+            result.onSuccess { updateAvatar(it.toString()) }.onFailure {
+                android.widget.Toast.makeText(context, "Не удалось сохранить фото", android.widget.Toast.LENGTH_SHORT).show()
+            }
         }
-        return FileProvider.getUriForFile(
-            context,
-            "${context.packageName}.fileprovider",
-            file
-        )
     }
 
     fun save(onSaved: () -> Unit = {}) {
